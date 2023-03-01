@@ -31,4 +31,12 @@ public:
     double norm_l2(std::vector<double> res, std::vector<double> b);
 
     void print();
+
+    double get_diag_element(int line_number);
+    double get_lower_diag_element(int line_number);
+    double get_upper_diag_element(int line_number);
+
+    double set_diag_element(int line_number, double value);
+    double set_lower_diag_element(int line_number,double value);
+    double set_upper_diag_element(int line_number,double value);
 };

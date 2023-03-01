@@ -32,14 +32,14 @@ def f(x):
 
 
 def solver(N):
-    h = 1. / N
+    h = 1. / (N-1)
     A = thomas.ThreeDiagMatrix(N)
     b = np.zeros(N)
     A.d[0] = 1.
     A.d[N - 1] = 1.
 
-    b[0] = f(0.)
-    b[N - 1] = f(1.)
+    b[0] = g(0.)
+    b[N - 1] = g(1.)
 
     for i in range(1, N - 1):
         A.d[i] = 2. / (h * h)
@@ -54,7 +54,7 @@ def solver(N):
 
 
 if __name__ == '__main__':
-    N = 40
+    N = 41
     numeric_solution = solver(N)
     norm = 0.
     print(len(numeric_solution))
@@ -63,5 +63,5 @@ if __name__ == '__main__':
         # print('x: ', i * (1. / (N-1)))
         # print('f: ', g(i * (1. / (N-1))))
         # print('y:', -numeric_solution[i])
-        norm += (-numeric_solution[i] - g(i * (1. / (N)))) ** 2
-    print('norm: ', np.sqrt(norm) * (1. / N))
+        norm += (-numeric_solution[i] - g(i * (1. / (N-1)))) ** 2
+    print('norm: ', np.sqrt(norm) * (1. / (N-1)))

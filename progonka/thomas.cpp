@@ -95,3 +95,27 @@ void ThreeDiagMatrix::print() {
     std::cout << std::endl;
 }
 
+double ThreeDiagMatrix::get_diag_element(int line_number) {
+    return d[line_number];
+}
+
+double ThreeDiagMatrix::get_lower_diag_element(int line_number) {
+    return dl[line_number];
+}
+
+double ThreeDiagMatrix::get_upper_diag_element(int line_number) {
+    return du[line_number];
+}
+
+double ThreeDiagMatrix::set_diag_element(int line_number, double value) {
+    d[line_number] = value;
+}
+
+double ThreeDiagMatrix::set_lower_diag_element(int line_number, double value) {
+    dl[line_number] = value;
+}
+
+double ThreeDiagMatrix::set_upper_diag_element(int line_number, double value) {
+    du[line_number] = value;
+}
+
