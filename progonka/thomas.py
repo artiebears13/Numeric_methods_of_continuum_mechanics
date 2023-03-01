@@ -89,7 +89,7 @@ class ThreeDiagMatrix:
         return res
 
 if __name__ == '__main__':
-    N = 100
+    N = 11
     d = np.ones(N) * 2
     du = np.ones(N) * (-1)
     dl = np.ones(N) * (-1)
@@ -109,13 +109,14 @@ if __name__ == '__main__':
     print('dl: ', A.dl)
     #
     #     # start_time = time.time()
-    linalg_solution = np.linalg.solve(A, b)
+    # linalg_solution = np.linalg.solve(A, b)
     #     # end_time = time.time()
     #     # print('time of np.linalg.solve: ', (time.time() - start_time) / 1000, 'ms')
     norm = 0
 
     #     start_time = time.time()
     my_solution = A.thomas_solver(b)
+    res = A.mul_mat_vec(my_solution)
     for i in range(len(b)):
         norm += ((res[i] - b[i]) * (res[i] - b[i]))
 

@@ -46,16 +46,17 @@ def solver(N):
         A.du[i] = -1. / (h * h)
         A.dl[i] = -1. / (h * h)
         b[i] = f(i * h)
-    # print('A.du: ', A.du)
-    # print('A.d: ', A.d)
-    # print('A.dl: ', A.dl)
-    # print('b: ', b)
+    print('A.du: ', A.du)
+    print('A.d: ', A.d)
+    print('A.dl: ', A.dl)
+    print('b: ', b)
     return A.thomas_solver(b)
 
 
 if __name__ == '__main__':
-    N = 41
+    N = 11
     numeric_solution = solver(N)
+    print('numeric solution: ', numeric_solution)
     norm = 0.
     print(len(numeric_solution))
     for i in range(N):
