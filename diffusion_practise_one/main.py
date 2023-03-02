@@ -65,4 +65,4 @@ if __name__ == '__main__':
         # print('f: ', g(i * (1. / (N-1))))
         # print('y:', -numeric_solution[i])
         norm += (-numeric_solution[i] - g(i * (1. / (N-1)))) ** 2
-    print('norm: ', np.sqrt(norm) * (1. / (N-1)))
+    print('norm: ', np.sqrt(norm) * np.sqrt(1. / (N-1)))

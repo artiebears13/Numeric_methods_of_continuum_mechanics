@@ -57,7 +57,8 @@ std::vector<double> solve(int N) {
 }
 
 void check_for_N(int N) {
-    double h = 1/(N-1);
+    double h = 1./(N-1);
+    std::cout<<"h = "<<h<<std::endl;
     std::vector<double> numeric_solution;
     numeric_solution = solve(N);
     double norm = 0;
@@ -65,6 +66,7 @@ void check_for_N(int N) {
         norm += (numeric_solution[i] - g(i * (1. / (N - 1)))) * (numeric_solution[i] - g(i * (1. / (N - 1))));
 
     }
-
-    std::cout << "N = " << N << " norm: " << sqrt(norm)*(h*h) << std::endl;
+//    norm = sqrt(norm)*sqrt(h);
+    std::cout<<"Equation solver:"<<std::endl;
+    std::cout << "N = " << N << " L2 norm: " << sqrt(norm)*sqrt(h) << std::endl;
 }

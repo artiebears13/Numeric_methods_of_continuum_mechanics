@@ -41,7 +41,7 @@ std::vector<double> ThreeDiagMatrix::thomas_solver(std::vector<double> &b) {
               std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << " microseconds"
               << std::endl;
     std::vector<double> tmp = mul_mat_vec(u);
-    std::cout << "L2 norm: " << norm_l2(tmp, b) << std::endl;
+    std::cout << "Thomas solver L2 norm: " << norm_l2(tmp, b) << std::endl;
 
     return u;
 
