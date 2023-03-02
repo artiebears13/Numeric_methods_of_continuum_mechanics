@@ -88,41 +88,45 @@ class ThreeDiagMatrix:
                 res[i] += self.du[i] * b[i + 1]
         return res
 
+
 if __name__ == '__main__':
-    N = 11
+    N = 100
     d = np.ones(N) * 2
     du = np.ones(N) * (-1)
     dl = np.ones(N) * (-1)
     b = np.ones(N)
-    # for i in range(N - 1):
-    #     b[i] = 1
-    #     b[N - 1] = -(N - 1)
-    #     print(' ')
-    #     print('b: ', b)
-    #     print('sum of b: ', np.sum(b))
-    #
-    A = ThreeDiagMatrix(d, du, dl)
-    #     A.d[0] = 1
-    #     A.d[N - 1] = 2
-    print('du: ', A.du)
-    print('d: ', A.d)
-    print('dl: ', A.dl)
-    #
-    #     # start_time = time.time()
-    # linalg_solution = np.linalg.solve(A, b)
-    #     # end_time = time.time()
-    #     # print('time of np.linalg.solve: ', (time.time() - start_time) / 1000, 'ms')
-    norm = 0
 
-    #     start_time = time.time()
+    A = ThreeDiagMatrix(d, du, dl)
+    print('------------------------')
+    # print('du: ', A.du)
+    # print('d: ', A.d)
+    # print('dl: ', A.dl)
+
+    norm = 0
     my_solution = A.thomas_solver(b)
     res = A.mul_mat_vec(my_solution)
     for i in range(len(b)):
         norm += ((res[i] - b[i]) * (res[i] - b[i]))
 
-    print(np.sqrt(norm))
-#     end_time = time.time()
-#     print('time of my solver: ', (time.time() - start_time) / 1000, 'ms')
-#
-#     # print('solution: ', my_solution)
-#     print('L2 norm: ', sp.linalg.norm(A.mul_mat_vec(my_solution) - b, 2))
+    print('L2-norm: ', np.sqrt(norm))
+
+    N = 100
+    d = 2 + np.random.rand(N)
+    d = -np.random.rand(N)
+    du = -np.random.rand(N)
+    dl = -np.random.rand(N)
+    b = 2*np.random.rand(N)-1
+
+    A = ThreeDiagMatrix(d, du, dl)
+    print('------------------------')
+    # print('du: ', A.du)
+    # print('d: ', A.d)
+    # print('dl: ', A.dl)
+
+    norm = 0
+    my_solution = A.thomas_solver(b)
+    res = A.mul_mat_vec(my_solution)
+    for i in range(len(b)):
+        norm += ((res[i] - b[i]) * (res[i] - b[i]))
+
+    print('L2-norm: ', np.sqrt(norm))
