@@ -7,18 +7,22 @@ from params3d import *
 import numpy as np
 from typing import List
 import os, glob
+from matplotlib.axes import Axes
+import matplotlib.pyplot as plt
 
 # Problem description: http://solidmechanics.org/Text/Chapter8_6/Chapter8_6.php
 '''
 mesh, basis, nu = 1/2+-
 '''
 
+
 def Drawing(mesh_a: int = 11,
             mesh_l: int = 4,
             nu: float = 0.25,
             element: str = "ElementQuadP1",
-            axs: List[Axes] = None,):
-    def create_mesh(mesh_a, mesh_l,nu, nr=4, nphi=32):  # сетка  (4 по радиусу и 31 по фи  это меняем)
+            axs: List[Axes] = None, ):
+
+    def create_mesh(a, b, nr=4, nphi=32):  # сетка  (4 по радиусу и 31 по фи  это меняем)
         import meshio
         def roll(arr, axis):
             rolled = np.roll(arr, -1, axis)
@@ -35,28 +39,24 @@ def Drawing(mesh_a: int = 11,
                            cell_sets={"inner": [np.arange(0), np.arange(nphi)],
                                       "outer": [np.arange(0), np.arange(nphi, 2 * nphi)]})
 
-
     a, b = mesh_a, mesh_l
     E, nu = 2.5, nu  # ню ближе к 0.5 когда стремимся к ней все хуже когда ню 1/2 то это абсолютно несжимаемый материал<1/2
     lam, mu = lame_parameters(E, nu)
     pa, pb = 0.33 * E, 0.0  # 0.38
 
-    m = from_meshio(create_mesh(a, b))
-
-    e = element
+    m = from_meshio(create_mesh(a=a, b=b))
+    # print(element)
+    e = elementUList.get(element)
     basis = Basis(m, e)
 
     K = asm(linear_elasticity(lam, mu), basis)
 
-
     def trac_inner(x, y):
         return pa / a * np.array([x, y])
-
 
     @LinearForm
     def loadingIn(v, w):
         return dot(trac_inner(*w.x), v)
-
 
     inner_basis = FacetBasis(m, e, facets=m.boundaries['inner'])
 
@@ -74,14 +74,12 @@ def Drawing(mesh_a: int = 11,
     # u=solve(K,f)
     u = solve(A, g)
 
-
     def analytic(x, y):
         r = np.sqrt(np.power(x, 2) + np.power(y, 2))
         ex, ey = x / r, y / r
         c = (1 + nu) * (a * b) ** 2 / (E * (b ** 2 - a ** 2))
         c2 = c * ((pa - pb) / r + (1 - 2 * nu) * (pa * a ** 2 - pb * b ** 2) / ((a * b) ** 2) * r)
         return c2 * ex, c2 * ey
-
 
     def visualize():
         import matplotlib.pyplot as plt
@@ -98,45 +96,44 @@ def Drawing(mesh_a: int = 11,
         )
         ax[1] = draw(m1, ax=ax[1], color='r')
         ax[1] = draw(m2, ax=ax[1], color='k')
-        ax[1].plot()
         ax[1].legend(['Finite element', 'Analytics'])
+        ax[1].plot()
+
+
 def GridDrawing(
         nu: float = 0.25,
         i: int = 11,
         elementU: str = "ElementQuadP1",
         path: str = "data/output.log") -> None:
-
-
-    rows = len(mesh_lList)*len(mesh_aList)
+    rows = len(mesh_lList) * len(mesh_aList)
     cols = 2
     fig, axs = plt.subplots(rows, cols, figsize=(40, 10 * rows), constrained_layout=True)
 
     axIndex = 0
 
     for l in mesh_lList:
-            for a in mesh_aList:
-                    print(f"{axIndex}: MeshScaling = {mesh}, "
-                          f"Element U = {elementU},  nu = {nu}, lenght = {lenght},"
-                          f" mesh:{l}x{a}")
-                    try:
-                        Drawing(
-                            nu=nu,
-                            element=elementU,
-                            mesh_l=l,
-                            mesh_a=a,
-                            axs=axs[axIndex],
-                        )
-                    except ValueError as error:
-                        with open(path, "a+") as file:
-                            file.write(f"\tMeshScaling = {mesh}, "
-                                       f"Element U = ElementVector({elementU}), nu = {nu}")
-                            file.write("\n\t\t" + str(error) + "\n")
-                        print("\tValue Error")
-                        axIndex += 1
-                        continue
-                    axIndex += 1
+        for a in mesh_aList:
+            print(f"{axIndex}: "
+                  f"Element U = {elementU},  nu = {nu},"
+                  f" mesh:{l}x{a}")
+            try:
+                Drawing(
+                    nu=nu,
+                    element=elementU,
+                    mesh_l=l,
+                    mesh_a=a,
+                    axs=axs[axIndex],
+                )
+            except Exception as error:
+                with open(path, "a+") as file:
+                    file.write(f"Element U = ElementVector({elementU}), nu = {nu}")
+                    file.write("\n\t\t" + str(error) + "\n")
+                print("\tValue Error")
+                axIndex += 1
+                continue
+            axIndex += 1
 
-    plt.savefig(f"data/{mesh}/{i}_{nu}_{elementU}_{lenght}.png")
+    plt.savefig(f"data2/{i}_{nu}_{elementU}.png")
 
 
 def startLogging(path: str = "data/output.log") -> None:
@@ -179,9 +176,9 @@ def main(removeFiles: bool = False, gifCreator: bool = False) -> None:
             os.remove(file)
 
     startLogging()
-    for nu in nuList:
+    for i, nu in enumerate(nuList):
         for elementU in elementUList:
-            GridDrawing(mesh=mesh, nu=nu ,elementU=elementU,lenght=lenght, i = i)
+            GridDrawing(nu=nu, elementU=elementU, i=i)
 
     if gifCreator:
         createGIF()
@@ -189,8 +186,3 @@ def main(removeFiles: bool = False, gifCreator: bool = False) -> None:
 
 if __name__ == '__main__':
     main()
-
-
-
-
-

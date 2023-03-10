@@ -18,7 +18,7 @@ elementUList = {
 
 }
 nuList = [
-    0.25, 0.35,0.4,0.45,0.49
+    0.25, 0.35,# 0.4, 0.45, 0.49
 ]
 # mesh_lList = [
 #     11
@@ -29,12 +29,11 @@ mesh_lList = [
 ]
 
 mesh_aList = [
-    4, 16,81,
+    4, 16, 81,
 ]
 
 # mesh_aList = [
 #     4
 # ]
-meshList = ["Quad"]#, "Tri"]
+meshList = ["Quad"]  # , "Tri"]
 # meshList = [ "Tri"]
-

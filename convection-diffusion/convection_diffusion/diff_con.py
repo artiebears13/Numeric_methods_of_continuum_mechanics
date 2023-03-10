@@ -1,7 +1,7 @@
 import numpy as np
 from sys import stderr
 import time
-import convection_diffusion.thomas as thomas
+import thomas as thomas
 import matplotlib.pyplot as plt
 from typing import Tuple, List
 

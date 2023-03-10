@@ -156,7 +156,7 @@ def GridDrawing(
                         continue
                     axIndex += 1
 
-    plt.savefig(f"data/{mesh}/{i}_{nu}_{elementU}_{lenght}.png")
+    plt.savefig(f"data3/{mesh}/{i}_{nu}_{elementU}_{lenght}.png")
 
 
 def startLogging(path: str = "data/output.log") -> None:
