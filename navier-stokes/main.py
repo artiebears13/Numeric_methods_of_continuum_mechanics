@@ -203,7 +203,7 @@ class Navier:
         plt.savefig('output.png')
 
 
-A = Navier(N=10, eps=0.01, nu=0.001)
+A = Navier(N=32, eps=0.01, nu=0.01)
 A.solver(1, 0.1)
 # print('u:',A.u_prev)
 # print('v: ',A.v_prev)
