@@ -93,10 +93,10 @@ class Navier:
                 # gradU = 0.5*(-1*(uw+uc)*uw + (ue+uc)*ue - (vsw+vse)*us + (vnw+vne)*un)
                 gradU = self.h * (
                         ((uc + ue) / 2) ** 2 - ((uw + uc) / 2) ** 2 - (vnw + vne) / 2 * (un + uc) / 2 + (
-                            vsw + vse) / 2 * (us + uc / 2)
+                            vsw + vse) / 2 * (us + uc) / 2
                 )
 
-                u[i, j] = uc - dt * ( gradU + self.nu / self.h**2 * (4 * uc - uw - ue - us - un) + (pe - pw) * self.h)
+                u[i, j] = uc - dt * ( gradU + self.nu /self.h**2 * (4 * uc - uw - ue - us - un) + (pe - pw) * self.h)
 
         # --------------------------------------------------------------------------------
 
@@ -123,15 +123,25 @@ class Navier:
                         (une + use) / 2 * (ve + vc) / 2 - (unw + usw) / 2 * (vc + vw) / 2 - ((vn + vc) / 2) ** 2 + (
                             (vs + vc) / 2) ** 2
                 )
-                v[i, j] = vc - dt * (gradV + self.nu / self.h / self.h * (4 * vc - vw - ve - vs - vn) + (ps - pn) * self.h)
+                v[i, j] = vc - dt * (gradV + self.nu /self.h**2 * (4 * vc - vw - ve - vs - vn) + (ps - pn) * self.h)
 
         # print('a')
         return u, v
 
-    def solver(self, T, dt):
-        t = 0
+    def norm_u(self,u):
+        norm = 0
+        for i in range(self.N):
+            for j in range(self.N):
+                if np.abs(u[i,j]*10000-self.u_prev[i,j]*10000)>norm:
+                    norm = np.abs(u[i,j]*10000-self.u_prev[i,j]*10000)
+        return norm
 
-        while t < 2*T:
+    def solver(self, T, dt):
+        eps = self.eps
+        t = 0
+        cont = True
+
+        while cont:
             b_check = False
             # print(t)
 
@@ -140,57 +150,63 @@ class Navier:
                 # b_check = True
                 u, v = self.solveUV(p, dt)
                 b = self.div(u, v,dt)
-                print('t: ', t, ' norm: ', np.linalg.norm(b), ' norm_p', np.mean(p))
+                # print('t: ', t, ' norm: ', np.linalg.norm(b), ' norm_p', np.mean(p))
                 # print(p)
                 if np.linalg.norm(b) > self.eps:
                     p_correction = self.solve_P(b)
                     p = p + p_correction
-                    print('p_corr: ', np.mean(p_correction))
+                    # print('p_corr: ', np.mean(p_correction))
                     # p -= np.mean(p)
-                    print('----------------------------------')
+                    # print('----------------------------------')
                     # print(p)
                     # print('-------------------------------------')
                     # print(p_correction)
 
                 else:
                     b_check = True
-
+            print('t: ',t,' delta_u: ', self.norm_u(u),' delta_v: ',np.linalg.norm(v-self.v_prev,2))
+            if self.norm_u(u)<eps and np.linalg.norm(v-self.v_prev)<eps and t>1:
+                cont = False
             self.u_prev = u
             self.v_prev = v
             self.p_prev = p
+
 
             t += dt
             # break
             # t+=
         self.plot_solution(self.u_prev, self.v_prev, self.p_prev)
 
-    def plot_solution(self, u, v, p, streamplot=True):
+    def plot_solution(self, u, v, p,streamplot=True):
         """
         Отрисовка решения.
         """
+
         print(u.shape)
         print(v.shape)
         # u = u[:, 1:]
-        u = (u[:, :-1]+u[:,1:])/2
-        v = v[1:, :]
+        u = (u[:, :-1] + u[:, 1:]) / 2
+        v = (v[1:, :] + v[:-1,:])/2
 
         N = self.N
         u = u.reshape(N * N, 1)[::-1].reshape(N, N)
         v = v.reshape(N * N, 1)[::-1].reshape(N, N)
-        # print(u.shape)
-        x = np.arange(0,1,self.h)
-        y = np.arange(0,1,self.h)
+        p = p[::-1]
+        print(u.shape)
+        x = np.arange(self.h/2, 1, self.h)
+        y = np.arange(self.h/2, 1, self.h)
         grid_x, grid_y = np.meshgrid(x, y)
         fig = plt.figure(figsize=(10, 10))
         plt.xlim(0, 1)
         plt.ylim(0, 1)
-        plt.streamplot(grid_x, grid_y, u, v)
+        plt.streamplot(grid_x, grid_y, u.reshape((self.N, self.N)), v.reshape((self.N, self.N)), color='black')
+        plt.contourf(grid_x, grid_y, p.reshape((self.N,self.N)))
         plt.show()
 
 
-A = Navier(N=16, eps=0.01, nu=0.1)
-A.solver(1, 0.002)
-print('u:',A.u_prev)
-print('v: ',A.v_prev)
-print(A.p_prev)
-print(A.A)
+A = Navier(N=20, eps=0.01, nu=0.001)
+A.solver(1, 0.01)
+# print('u:',A.u_prev)
+# print('v: ',A.v_prev)
+# print(A.p_prev)
+# print(A.A)
