@@ -141,7 +141,7 @@ class Navier:
         t = 0
         cont = True
 
-        while cont:
+        while t<T:
             b_check = False
             # print(t)
 
@@ -170,12 +170,11 @@ class Navier:
             self.u_prev = u
             self.v_prev = v
             self.p_prev = p
-
-
+            self.plot_solution(self.u_prev, self.v_prev, self.p_prev)
             t += dt
             # break
             # t+=
-        self.plot_solution(self.u_prev, self.v_prev, self.p_prev)
+
 
     def plot_solution(self, u, v, p,streamplot=True):
         """
@@ -201,11 +200,11 @@ class Navier:
         plt.ylim(0, 1)
         plt.streamplot(grid_x, grid_y, u.reshape((self.N, self.N)), v.reshape((self.N, self.N)), color='black')
         plt.contourf(grid_x, grid_y, p.reshape((self.N,self.N)))
-        plt.show()
+        plt.savefig('output.png')
 
 
-A = Navier(N=20, eps=0.01, nu=0.001)
-A.solver(1, 0.01)
+A = Navier(N=10, eps=0.01, nu=0.001)
+A.solver(1, 0.1)
 # print('u:',A.u_prev)
 # print('v: ',A.v_prev)
 # print(A.p_prev)
