@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 class Navier:
-    def __init__(self, N, eps,nu):
+    def __init__(self, N, eps, nu):
         self.A = np.zeros((N * N, N * N))
         self.eps = eps
         self.h = 1 / N
@@ -43,7 +43,7 @@ class Navier:
         # print(sol)
         return sol
 
-    def div(self, u, v,dt):
+    def div(self, u, v, dt):
         b = np.zeros(self.N * self.N)
         # print(f'u: {u.shape}')
         # print(f'v: {v.shape}')
@@ -51,13 +51,14 @@ class Navier:
         for i in range(self.N):
             for j in range(self.N):
                 # print(f'i: {i}  j: {j}')
-                b[i * self.N + j] = -self.h * (u[i, j + 1] - u[i, j] + v[i+1, j] - v[i, j])/dt
+                b[i * self.N + j] = -self.h * (u[i, j + 1] - u[i, j] + v[i + 1, j] - v[i, j])
 
         return b
 
     def solveUV(self, p, dt):
-        u = self.u_prev
-        v = self.v_prev
+        N = self.N
+        u = np.zeros((N, N + 1))
+        v = np.zeros((N+1, N ))
         '''
         du/dt = (u*grad)*u - nu (laplace(u)) + grad(p)
         
@@ -66,7 +67,7 @@ class Navier:
         dv/dt = u*(dv/dx)+v*(dv/dy) - nu*(d2v/dx2+d2v/dy2) + px
          
         '''
-        N = self.N
+
         for i in range(self.N):  # i = [0,N)
             for j in range(1, self.N):  #
 
@@ -77,9 +78,9 @@ class Navier:
                     un = 2 - uc
                 else:
                     un = self.u_prev[i - 1, j]
-                if i == self.N - 1:  # lower boundary
+                if i == (self.N - 1):  # lower boundary
                     # print('i1:   ',i)
-                    us = 0
+                    us = -uc
                 else:
                     # print('i2:   ',i, ' j: ', j)
                     us = self.u_prev[i + 1, j]
@@ -91,12 +92,13 @@ class Navier:
                 pe = p[i * N + j]
                 pw = p[i * N + j - 1]
                 # gradU = 0.5*(-1*(uw+uc)*uw + (ue+uc)*ue - (vsw+vse)*us + (vnw+vne)*un)
-                gradU = self.h * (
-                        ((uc + ue) / 2) ** 2 - ((uw + uc) / 2) ** 2 - (vnw + vne) / 2 * (un + uc) / 2 + (
-                            vsw + vse) / 2 * (us + uc) / 2
+                gradU = 0.25 * self.h * (
+                        (uc + ue) * (uc + ue) - (uw + uc) * (uw + uc) - (vnw + vne) * (un + uc) + (
+                        vsw + vse) * (us + uc)
                 )
 
-                u[i, j] = uc - dt * ( gradU + self.nu /self.h**2 * (4 * uc - uw - ue - us - un) + (pe - pw) * self.h)
+                u[i, j] = uc - dt * (
+                            gradU + self.nu / (self.h ** 2) * (4 * uc - uw - ue - us - un) + (pe - pw) * self.h)
 
         # --------------------------------------------------------------------------------
 
@@ -106,11 +108,11 @@ class Navier:
                 vn = self.v_prev[i - 1, j]
                 vs = self.v_prev[i + 1, j]
                 if j == N - 1:  # right boundary
-                    ve = 0
+                    ve = -vc
                 else:
                     ve = self.v_prev[i, j + 1]
                 if j == 0:  # left boundary
-                    vw = 0
+                    vw = -vc
                 else:
                     vw = self.v_prev[i, j - 1]
                 une = self.u_prev[i - 1, j + 1]
@@ -119,44 +121,53 @@ class Navier:
                 usw = self.u_prev[i, j]
                 pn = p[(i - 1) * N + j]
                 ps = p[i * N + j]
-                gradV = self.h * (
-                        (une + use) / 2 * (ve + vc) / 2 - (unw + usw) / 2 * (vc + vw) / 2 - ((vn + vc) / 2) ** 2 + (
-                            (vs + vc) / 2) ** 2
+                gradV = 0.25 * self.h * (
+                        (une + use) * (ve + vc) - (unw + usw) * (vc + vw) + ((vn + vc)) ** 2 - (
+                    (vs + vc)) ** 2
                 )
-                v[i, j] = vc - dt * (gradV + self.nu /self.h**2 * (4 * vc - vw - ve - vs - vn) + (ps - pn) * self.h)
+                v[i, j] = vc - dt * (gradV + self.nu / self.h ** 2 * (4 * vc - vw - ve - vs - vn) + (ps - pn) * self.h)
 
         # print('a')
         return u, v
 
-    def norm_u(self,u):
+    def norm_u(self, u):
         norm = 0
         for i in range(self.N):
             for j in range(self.N):
-                if np.abs(u[i,j]*10000-self.u_prev[i,j]*10000)>norm:
-                    norm = np.abs(u[i,j]*10000-self.u_prev[i,j]*10000)
+                if np.abs(u[i, j]- self.u_prev[i, j]) > norm:
+                    norm = np.abs(u[i, j] * 10000 - self.u_prev[i, j] * 10000)
         return norm
 
     def solver(self, T, dt):
+        N = self.N
         eps = self.eps
         t = 0
         cont = True
+        self.u_prev = np.zeros((N, N + 1))
+        # self.u_prev[0] = np.ones(N + 1)
+        # print(self.u_prev)
+        self.v_prev = np.zeros((N + 1, N))
+        self.p_prev = np.zeros(N * N)
 
-        while t<T:
+        # while t < T+dt/2:
+        while cont or t<3:
             b_check = False
             # print(t)
-
+            norm = self.eps + 1
             p = self.p_prev
-            while not b_check:
+            # while not b_check:
+            while norm > eps:
                 # b_check = True
                 u, v = self.solveUV(p, dt)
-                b = self.div(u, v,dt)
-                # print('t: ', t, ' norm: ', np.linalg.norm(b), ' norm_p', np.mean(p))
+                b = self.div(u, v, dt)
+                print('t: ', t, ' norm: ', np.linalg.norm(b), ' norm_p', np.mean(p))
                 # print(p)
-                if np.linalg.norm(b) > self.eps:
-                    p_correction = self.solve_P(b)
+                norm = np.linalg.norm(b)
+                if norm > self.eps:
+                    p_correction = self.solve_P(b / dt)
                     p = p + p_correction
                     # print('p_corr: ', np.mean(p_correction))
-                    # p -= np.mean(p)
+                    p -= np.mean(p)
                     # print('----------------------------------')
                     # print(p)
                     # print('-------------------------------------')
@@ -164,19 +175,18 @@ class Navier:
 
                 else:
                     b_check = True
-            print('t: ',t,' delta_u: ', self.norm_u(u),' delta_v: ',np.linalg.norm(v-self.v_prev,2))
-            if self.norm_u(u)<eps and np.linalg.norm(v-self.v_prev)<eps and t>1:
+            print('t: ', t, ' delta_u: ', np.linalg.norm(u - self.u_prev), ' delta_v: ', np.linalg.norm(v - self.v_prev, 2))
+            if np.linalg.norm(u - self.u_prev) < eps and np.linalg.norm(v - self.v_prev) < eps and t > 1:
                 cont = False
             self.u_prev = u
             self.v_prev = v
             self.p_prev = p
-            self.plot_solution(self.u_prev, self.v_prev, self.p_prev)
+
             t += dt
-            # break
+            self.plot_solution(self.u_prev, self.v_prev, self.p_prev,dt)    # break
             # t+=
 
-
-    def plot_solution(self, u, v, p,streamplot=True):
+    def plot_solution(self, u, v, p, dt,streamplot=True):
         """
         Отрисовка решения.
         """
@@ -185,26 +195,27 @@ class Navier:
         print(v.shape)
         # u = u[:, 1:]
         u = (u[:, :-1] + u[:, 1:]) / 2
-        v = (v[1:, :] + v[:-1,:])/2
+        v = (v[1:, :] + v[:-1, :]) / 2
 
         N = self.N
         u = u.reshape(N * N, 1)[::-1].reshape(N, N)
         v = v.reshape(N * N, 1)[::-1].reshape(N, N)
         p = p[::-1]
         print(u.shape)
-        x = np.arange(self.h/2, 1, self.h)
-        y = np.arange(self.h/2, 1, self.h)
+        x = np.arange(self.h / 2, 1, self.h)
+        y = np.arange(self.h / 2, 1, self.h)
         grid_x, grid_y = np.meshgrid(x, y)
         fig = plt.figure(figsize=(10, 10))
         plt.xlim(0, 1)
         plt.ylim(0, 1)
         plt.streamplot(grid_x, grid_y, u.reshape((self.N, self.N)), v.reshape((self.N, self.N)), color='black')
-        plt.contourf(grid_x, grid_y, p.reshape((self.N,self.N)))
+        plt.contourf(grid_x, grid_y, p.reshape((self.N, self.N)))
+        plt.title(f"N = {self.N}, Eps = {self.eps}, Nu = {self.nu}, dt = {dt}", fontsize=20)
         plt.savefig('output.png')
 
 
-A = Navier(N=32, eps=0.01, nu=0.01)
-A.solver(1, 0.1)
+A = Navier(N=16, eps=0.001, nu=0.0001)
+A.solver(1, 0.01)
 # print('u:',A.u_prev)
 # print('v: ',A.v_prev)
 # print(A.p_prev)
